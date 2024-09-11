@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD TP 2024-2</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        let pokemons = [];
+
+        async function fetchPokemons() {
+            
+            const respuesta = await fetch('https://pokeapi.co/api/v2/pokemon?limit=10');
+            const data = await respuesta.json();
+
+            pokemons = await Promise.all(data.results.map(async(pokemon) => {
+                    const detalles = await fetch(pokemon.url).then(res => res.json());
+                    return { 
+                        nombre: pokemon.name, 
+                        altura: detalles.height
+                    };
+                })
+            );
+            MostrarTabla();
+        }
+
+        function AgregarPokemon() {
+
+            const nombre = document.getElementById('pokemonName').value;
+
+            if(!nombre){
+                alert('porfavor ingresa un nombre para el pokemon')
+                return;
+            }
+            
+            pokemons.push({
+                nombre,
+                altura: Math.floor(Math.random() * 10)
+            });
+            MostrarTabla();
+
+            document.getElementById('pokemonName').value = ''
+        }
+
+        function EliminarPokemon(index){
+            pokemons.splice(index,1);
+            MostrarTabla();
+        }
+
+        function EditarPokemon(index){
+            const nuevoNombre = prompt("Editar Nombre del Pokemon: ", pokemons[index].nombre)
+            
+            if(nuevoNombre){
+                pokemons[index].nombre = nuevoNombre;
+                MostrarTabla();
+            }
+        }
+
+        function MostrarTabla() {
+            const tableBody = document.getElementById('pokemonTableBody');
+            tableBody.innerHTML = ''; // Limpiar la tabla
+            pokemons.forEach((pokemon, index) => {
+                const row = `<tr class="bg-white border-b">
+                <td class="px-4 py-2">${pokemon.nombre}</td>
+                <td class="px-4 py-2">${pokemon.altura}</td>
+                <td class="px-4 py-2">
+                    <button onclick="EditarPokemon(${index})" class="bg-yellow-400 text-white px-4 py-1 rounded mr-2">Editar</button>
+                    <button onclick="EliminarPokemon(${index})" class="bg-red-500 text-white px-4 py-1 rounded">Eliminar</button>
+                </td>
+                </tr>`; 
+                tableBody.innerHTML += row;
+         });
+        }
+
+        fetchPokemons();
+
+    </script>
+</head>
+
+<body class="p-8 bg-gray-100">
+    <div class="flex flex-col items-center justify-center text-center">
+    <h1 class="text-2xl font-bold mb-6">CRUD TP 2024-2 PokéAPI</h1>
+  
+    <!-- Formulario -->
+    <div class="mb-4">
+      <input type="text" id="pokemonName" placeholder="Nombre de Pokémon" class="border border-gray-300 rounded px-4 py-2 mb-2" />
+      <button onclick="AgregarPokemon()" class="bg-blue-500 text-white px-4 py-2 rounded">Agregar Pokémon</button>
+    </div>
+  
+    <!-- Tabla -->
+    <table class="w-auto bg-white shadow-md rounded-lg">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="px-4 py-2">Nombre</th>
+          <th class="px-4 py-2">Altura</th>
+          <th class="px-4 py-2">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="pokemonTableBody"></tbody>
+    </table>
+  </div>
+</body>
+
+</html>
